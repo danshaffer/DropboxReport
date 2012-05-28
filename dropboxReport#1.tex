@@ -1,0 +1,131 @@
+\documentclass[12pt]{article}
+\usepackage{latexsym,amssymb,amsmath} % for \Box, \mathbb, split, etc.
+% \usepackage[]{showkeys} % shows label names
+\usepackage{cite} % sorts citation numbers appropriately
+\usepackage{path}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage[pdftex]{graphicx}
+
+% horizontal margins: 1.0 + 6.5 + 1.0 = 8.5
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\textwidth}{6.5in}
+% vertical margins: 1.0 + 9.0 + 1.0 = 11.0
+\setlength{\topmargin}{0.0in}
+\setlength{\headheight}{12pt}
+\setlength{\headsep}{13pt}
+\setlength{\textheight}{625pt}
+\setlength{\footskip}{24pt}
+
+\renewcommand{\textfraction}{0.10}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\floatpagefraction}{0.90}
+
+\makeatletter
+\setlength{\arraycolsep}{2\p@} % make spaces around "=" in eqnarray smaller
+\makeatother
+
+% change equation, table, figure numbers to be counted inside a section:
+\numberwithin{equation}{section}
+\numberwithin{table}{section}
+\numberwithin{figure}{section}
+
+% begin of personal macros
+\newcommand{\half}{{\textstyle \frac{1}{2}}}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\myth}{\vartheta}
+\newcommand{\myphi}{\varphi}
+
+\newcommand{\IN}{\mathbb{N}}
+\newcommand{\IZ}{\mathbb{Z}}
+\newcommand{\IQ}{\mathbb{Q}}
+\newcommand{\IR}{\mathbb{R}}
+\newcommand{\IC}{\mathbb{C}}
+\newcommand{\Real}[1]{\mathrm{Re}\left({#1}\right)}
+\newcommand{\Imag}[1]{\mathrm{Im}\left({#1}\right)}
+
+\newcommand{\norm}[2]{\|{#1}\|_{{}_{#2}}}
+\newcommand{\abs}[1]{\left|{#1}\right|}
+\newcommand{\ip}[2]{\left\langle {#1}, {#2} \right\rangle}
+\newcommand{\der}[2]{\frac{\partial {#1}}{\partial {#2}}}
+\newcommand{\dder}[2]{\frac{\partial^2 {#1}}{\partial {#2}^2}}
+
+\newcommand{\nn}{\mathbf{n}}
+\newcommand{\xx}{\mathbf{x}}
+\newcommand{\uu}{\mathbf{u}}
+
+\newcommand{\junk}[1]{{}}
+
+% set two lengths for the includegraphics commands used to import the plots:
+\newlength{\fwtwo} \setlength{\fwtwo}{0.45\textwidth}
+% end of personal macros
+
+\begin{document}
+\DeclareGraphicsExtensions{.jpg}
+
+\begin{center}
+\textbf{\Large Modeling Referral Incentive of Dropbox} \\[6pt]
+  Fatema AlGharbi, Lu Li, Shagandeep Kaur and Dan Shaffer \\[6pt]
+Stanford University
+\end{center}
+
+\begin{abstract}
+The abstract should be a succinct summary of your topic and your solution.
+It should characterize what this
+report contains including the relevant conclusion from the results presented.
+Since abstracts are often entered in searchable databases,
+use only English words, no
+formulas, no citations, no references to any formula in your text,
+etc. Its length is often restricted, e.g., to 100 or 200~words.
+\end{abstract}
+
+\subparagraph{Key words.} Provide five key words or phrases that
+describe your topic, methods, and results.
+
+\section{Introduction}
+
+Dropbox is an online file storage and sharing service. Dropbox uses the freemium model and its free service provides up to 18 GB of free online storage (2 GB when a customer first signs up + 500MB per referral). Dropbox also has two kinds of paying account: \$99/year for 50G+ storage(+1GB/referral and up to 32GB); \$199/year for 100G+ storage(+1GB/referral and up to 32GB). 
+
+Dropbox's main marketing is through their referral program: they reward a customer with 500MB of free storage for every friend they referred installing dropbox. We are interested in investigating the reasoning behind the amount of rewarded free storage, and helping dropbox come up with an optimal way for referral reward to maximize their profit. For Dropbox, they're using Amazon S3 for storage, so their cost is the storage price. In revenue, each referred user has the potential to become a paying user and may also refer more users. We want to model these network effects and the resultant increase in the number of paying users in order to figure out the optimal value of free storage to offer. 
+
+We also want to improve the referral program by taking into account as a variable the current storage that a user has: the current system rewards everyone equally, while people who already have 10G might be less incentivized with extra 500MB than people who only have 2G.
+
+Our objective is to maximize profit for Dropbox. In this context, we would like to establish a mathematical model for profit, that addresses the following goals:
+1. Find the optimal amount of storage to reward to a customer for a referral.
+We think that the storage reward that Dropbox currently offers per referral may not be the optimal, in particular, since Dropbox recently doubled their reward from 250MB. Therefore, we would like to set up a model for Dropbox to find the optimal storage reward to maximize its profit.
+2. Categorize the free accounts according to the current storage that they have and come up with the optimal amount of storage to reward per referral for each category. We want to explore whether offering some customers larger rewards for referrals would be an effective strategy.
+While in (1), we are looking for a constant value of storage reward, here we are taking into account the different categories the users might be split into. Based on the usage each user has and the need for more storage the user will have an incentive to refer other people to Dropbox. Basically, the marginal benefit each user has is different, and therefore, we are taking into account the user’s usage of storage. 
+3. If time permits, we will also explore Dropbox’s pricing strategy for paying account. 
+
+\section{Modeling Issues}
+\begin{itemize}
+\item Dropbox operates under a “freemium” business model under which a subset of the users are paid, while the rest are free users. About 3\% of the total Dropbox users are paid.
+\item Dropbox offers several levels of accounts, differentiated by the storage offered and the price.
+\item The primary variable cost incurred by Dropbox is for providing storage space to the users. This cost is incurred per-gigabyte, per-month and at standard Amazon AWS rates.
+\item Users can join either on their own or as the result of an invitation.
+\item If a user joins as the result of an invitation, both the inviter and the invitee get additional storage.
+\item The number of users is bounded above by something like the total number of people on the internet.
+\item Users are motivated to invite others because:
+\begin{itemize}
+\item They want to share files with those other users.
+\item They are trying to game the system and get more storage without paying.
+\end{itemize}
+\item Users have different demands of Dropbox, so they have different storage needs.
+\end{itemize}
+
+\section{Notation and Assumptions}
+
+\section{Analysis}
+
+\section{Interpretation and Recommendation}
+
+\section{Self-Critique}
+\begin{itemize}
+\item Competition.
+\item Issues with survey. Have we asked the right questions? Do we actually trust what users say?
+\item Haven’t considered bandwidth costs or de-duplication technology. Also Dropbox doesn’t have to pay for all of the storage that it has awarded to users, only what users actually store. 
+\end{itemize}
+
+\end{document}
+
